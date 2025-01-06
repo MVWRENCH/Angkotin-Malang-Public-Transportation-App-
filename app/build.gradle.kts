@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.foundation.android)
     implementation(libs.transportation.consumer)
 
+
     //import fire base
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics")

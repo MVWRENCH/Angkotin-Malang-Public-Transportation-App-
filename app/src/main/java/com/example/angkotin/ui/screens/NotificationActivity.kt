@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
 
-
 class NotificationActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,8 +41,6 @@ fun NotificationSettingsScreen() {
     )
 
     val appNewsEnabled = remember { mutableStateOf(true) }
-    val metroAreaAlertsEnabled = remember { mutableStateOf(true) }
-    val favoriteLinesAlertsEnabled = remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
@@ -89,18 +86,6 @@ fun NotificationSettingsScreen() {
                     enabled = appNewsEnabled.value,
                     onToggle = { appNewsEnabled.value = it }
                 )
-                NotificationToggle(
-                    title = "Metro Area Alerts",
-                    subtitle = "Schedule changes, new lines, station closures, etc.",
-                    enabled = metroAreaAlertsEnabled.value,
-                    onToggle = { metroAreaAlertsEnabled.value = it }
-                )
-                NotificationToggle(
-                    title = "Favorite Lines Alerts",
-                    subtitle = "Service alerts for my favorite lines",
-                    enabled = favoriteLinesAlertsEnabled.value,
-                    onToggle = { favoriteLinesAlertsEnabled.value = it }
-                )
             }
         }
     }
@@ -119,11 +104,11 @@ fun NotificationToggle(
             .clickable { onToggle(!enabled) }
             .padding(vertical = 12.dp, horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically // Pastikan elemen sejajar secara vertikal
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
             modifier = Modifier
-                .weight(1f) // Memberi ruang fleksibel pada kolom teks
+                .weight(1f)
         ) {
             Text(
                 text = title,
@@ -137,11 +122,11 @@ fun NotificationToggle(
                 color = Color.White.copy(alpha = 0.7f)
             )
         }
-        Spacer(modifier = Modifier.width(16.dp)) // Memberikan jarak antara teks dan switch
+        Spacer(modifier = Modifier.width(16.dp))
         Switch(
             checked = enabled,
             onCheckedChange = onToggle,
-            modifier = Modifier.align(Alignment.CenterVertically), // Memastikan Switch sejajar vertikal
+            modifier = Modifier.align(Alignment.CenterVertically),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color(0xFF1E88E5),
                 uncheckedThumbColor = Color.White

@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 fun BusSurabayaApp() {
     val navController = rememberNavController()
 
+
     Scaffold(
         topBar = { /* Top bar already in HomePage */ }
     ) { innerPadding ->
