@@ -17,12 +17,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -51,7 +54,6 @@ import com.google.maps.model.TravelMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
 
 @SuppressLint("UseOfNonLambdaOffsetOverload")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,7 +111,7 @@ fun Routedetailpage(navController: NavController, routeId: String) {
             sheetContent = {
                 StreetNamesBottomSheet(route) // No extra drag bar here
             },
-            sheetPeekHeight = 64.dp, // Minimum height when collapsed
+            sheetPeekHeight = 50.dp, // Minimum height when collapsed
             modifier = Modifier.padding(paddingValues)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -218,10 +220,9 @@ fun fetchRouteCoordinates(routeId: String, context: Context, callback: (LatLng?,
 
 @Composable
 fun StreetNamesBottomSheet(route: RouteEntity?) {
-    // State untuk menyimpan nama jalan dari koleksi 'halte'
     val streetNamesState = remember { mutableStateOf<List<String>>(emptyList()) }
+    var textSize by remember { mutableStateOf(13.sp) }
 
-    // Ambil nama jalan ketika route tidak null
     LaunchedEffect(route) {
         route?.let {
             getStreetNamesFromHalte(it) { streetNames ->
@@ -235,18 +236,8 @@ fun StreetNamesBottomSheet(route: RouteEntity?) {
             .fillMaxWidth()
             .background(Color.White)
             .padding(16.dp)
+            .heightIn(max = 450.dp)
     ) {
-        // Indikator atas untuk dragging
-        Box(
-            modifier = Modifier
-                .width(40.dp)
-                .height(4.dp)
-                .background(Color.Gray, shape = CircleShape)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 8.dp)
-        )
-
-        // Daftar scrollable untuk nama jalan
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -272,7 +263,7 @@ fun StreetNamesBottomSheet(route: RouteEntity?) {
                             Box(
                                 modifier = Modifier
                                     .width(2.dp)
-                                    .height(64.dp) // Pastikan garis mencakup tinggi penuh
+                                    .height(67.dp) // Pastikan garis mencakup tinggi penuh
                                     .background(Color(0xFF1E88E5))
                                     .align(Alignment.Center)
                             )
@@ -291,7 +282,7 @@ fun StreetNamesBottomSheet(route: RouteEntity?) {
                         // Teks nama jalan
                         Text(
                             text = streetName,
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = textSize),
                             color = Color.Black,
                             modifier = Modifier.align(Alignment.CenterVertically) // Sejajarkan teks dengan lingkaran
                         )
@@ -302,9 +293,6 @@ fun StreetNamesBottomSheet(route: RouteEntity?) {
     }
 }
 
-
-
-
 fun setupMap(map: GoogleMap, context: Context, route: RouteEntity?) {
     route?.let {
         val start = LatLng(it.origin.latitude, it.origin.longitude)
@@ -313,123 +301,60 @@ fun setupMap(map: GoogleMap, context: Context, route: RouteEntity?) {
     }
 }
 
-//fun drawRoute(map: GoogleMap?, routeId: String, context: Context) {
-//    if (map == null) return
-//
-//    val route = RouteFactory.getRoute(routeId)
-//    if (route != null) {
-//        val geoContext = GeoApiContext.Builder()
-//            .apiKey(context.getString(R.string.google_map_api_key))
-//            .build()
-//
-//        val origin = LatLng(route.origin.latitude, route.origin.longitude)
-//        val destination = LatLng(route.destination.latitude, route.destination.longitude)
-//        val waypoints = route.waypoints.map { com.google.maps.model.LatLng(it.latitude, it.longitude) }
-//
-//        map.addMarker(MarkerOptions().position(origin).title("Origin"))
-//        map.addMarker(MarkerOptions().position(destination).title("Destination"))
-//
-//        CoroutineScope(Dispatchers.Main).launch {
-//            try {
-//                val result = DirectionsApiRequest(geoContext)
-//                    .origin(com.google.maps.model.LatLng(origin.latitude, origin.longitude))
-//                    .destination(com.google.maps.model.LatLng(destination.latitude, destination.longitude))
-//                    .waypoints(*waypoints.toTypedArray())
-//                    .mode(TravelMode.DRIVING)
-//                    .await()
-//
-//                if (result.routes.isNotEmpty()) {
-//                    val apiRoute = result.routes[0]
-//                    val encodedPath = apiRoute.overviewPolyline.encodedPath
-//                    val decodedPath = PolyUtil.decode(encodedPath)
-//
-//                    val polylineOptions = PolylineOptions()
-//                        .addAll(decodedPath.map { LatLng(it.latitude, it.longitude) })
-//                        .width(10f)
-//                        .color(0xFF1E88E5.toInt())
-//                    map.addPolyline(polylineOptions)
-//                    val arrowMarkers = addArrowsToPolyline(map, decodedPath, 700, context) // Adjust arrow spacing as needed
-//                    // Add camera listener to control arrow visibility
-//                    map.setOnCameraIdleListener {
-//                        val currentZoom = map.cameraPosition.zoom
-//                        val arrowVisibility = currentZoom >= 13 // Adjust zoom threshold as needed
-//
-//                        arrowMarkers.forEach { marker ->
-//                            marker.isVisible = arrowVisibility
-//                        }
-//                    }
-//                } else {
-//                    Toast.makeText(context, "No route found", Toast.LENGTH_SHORT).show()
-//                }
-//            } catch (e: Exception) {
-//                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//    } else {
-//        Toast.makeText(context, "Invalid route ID", Toast.LENGTH_SHORT).show()
-//    }
-//}
-
 fun drawRoute(map: GoogleMap?, routeId: String, context: Context) {
     if (map == null) return
 
-    // Fetch the Jalur and Halte data for the given routeId
-    fetchRouteCoordinates(routeId, context) { origin, destination, waypoints ->
-        if (origin != null && destination != null) {
-            val geoContext = GeoApiContext.Builder()
-                .apiKey(context.getString(R.string.google_map_api_key))
-                .build()
+    val route = RouteFactory.getRoute(routeId)
+    if (route != null) {
+        val geoContext = GeoApiContext.Builder()
+            .apiKey(context.getString(R.string.google_map_api_key))
+            .build()
 
-            map.addMarker(MarkerOptions().position(origin).title("Origin"))
-            map.addMarker(MarkerOptions().position(destination).title("Destination"))
+        val origin = LatLng(route.origin.latitude, route.origin.longitude)
+        val destination = LatLng(route.destination.latitude, route.destination.longitude)
+        val waypoints = route.waypoints.map { com.google.maps.model.LatLng(it.latitude, it.longitude) }
 
-            CoroutineScope(Dispatchers.Main).launch {
-                try {
-                    // Ensure the waypoints are correctly ordered, excluding the origin and destination
-                    val intermediateWaypoints = waypoints.drop(1).dropLast(1) // Remove the origin and destination
-                    val googleMapsWaypoints = intermediateWaypoints.map {
-                        com.google.maps.model.LatLng(it.latitude, it.longitude)
-                    }
+        map.addMarker(MarkerOptions().position(origin).title("Origin"))
+        map.addMarker(MarkerOptions().position(destination).title("Destination"))
 
-                    // Create the directions API request
-                    val result = DirectionsApiRequest(geoContext)
-                        .origin(com.google.maps.model.LatLng(origin.latitude, origin.longitude))
-                        .destination(com.google.maps.model.LatLng(destination.latitude, destination.longitude))
-                        .waypoints(*googleMapsWaypoints.toTypedArray()) // Pass waypoints
-                        .mode(TravelMode.DRIVING)
-                        .await()
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val result = DirectionsApiRequest(geoContext)
+                    .origin(com.google.maps.model.LatLng(origin.latitude, origin.longitude))
+                    .destination(com.google.maps.model.LatLng(destination.latitude, destination.longitude))
+                    .waypoints(*waypoints.toTypedArray())
+                    .mode(TravelMode.DRIVING)
+                    .await()
 
-                    if (result.routes.isNotEmpty()) {
-                        val apiRoute = result.routes[0]
-                        val encodedPath = apiRoute.overviewPolyline.encodedPath
-                        val decodedPath = PolyUtil.decode(encodedPath)
+                if (result.routes.isNotEmpty()) {
+                    val apiRoute = result.routes[0]
+                    val encodedPath = apiRoute.overviewPolyline.encodedPath
+                    val decodedPath = PolyUtil.decode(encodedPath)
 
-                        val polylineOptions = PolylineOptions()
-                            .addAll(decodedPath.map { LatLng(it.latitude, it.longitude) })
-                            .width(10f)
-                            .color(0xFF1E88E5.toInt())
-                        map.addPolyline(polylineOptions)
-                        val arrowMarkers = addArrowsToPolyline(map, decodedPath, 700, context) // Adjust arrow spacing as needed
+                    val polylineOptions = PolylineOptions()
+                        .addAll(decodedPath.map { LatLng(it.latitude, it.longitude) })
+                        .width(10f)
+                        .color(0xFF1E88E5.toInt())
+                    map.addPolyline(polylineOptions)
+                    val arrowMarkers = addArrowsToPolyline(map, decodedPath, 700, context) // Adjust arrow spacing as needed
+                    // Add camera listener to control arrow visibility
+                    map.setOnCameraIdleListener {
+                        val currentZoom = map.cameraPosition.zoom
+                        val arrowVisibility = currentZoom >= 13 // Adjust zoom threshold as needed
 
-                        // Add camera listener to control arrow visibility
-                        map.setOnCameraIdleListener {
-                            val currentZoom = map.cameraPosition.zoom
-                            val arrowVisibility = currentZoom >= 13 // Adjust zoom threshold as needed
-
-                            arrowMarkers.forEach { marker ->
-                                marker.isVisible = arrowVisibility
-                            }
+                        arrowMarkers.forEach { marker ->
+                            marker.isVisible = arrowVisibility
                         }
-                    } else {
-                        Toast.makeText(context, "No route found", Toast.LENGTH_SHORT).show()
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "No route found", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            Toast.makeText(context, "Invalid route coordinates", Toast.LENGTH_SHORT).show()
         }
+    } else {
+        Toast.makeText(context, "Invalid route ID", Toast.LENGTH_SHORT).show()
     }
 }
 
