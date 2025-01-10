@@ -92,14 +92,7 @@ fun SettingsScreen() {
                         context.startActivity(intent)
                     }
                 )
-                SettingsSection(
-                    icon = Icons.Filled.Close,
-                    title = "Dark Mode",
-                    onClick = {
-                        val intent = Intent(context, DarkModeActivity::class.java)
-                        context.startActivity(intent)
-                    }
-                )
+
             }
         }
     }
