@@ -81,8 +81,6 @@ fun SidebarScreen() {
                             )
                         }
 
-
-
                         Spacer(modifier = Modifier.height(32.dp))
 
                         // Menu Items
@@ -128,6 +126,16 @@ fun SidebarScreen() {
                                     onClick = {
                                         context.startActivity(
                                             Intent(context, SettingsActivity::class.java)
+                                        )
+                                    }
+                                )
+                                Divider(color = Color.White.copy(alpha = 0.3f), thickness = 1.dp)
+                                SidebarMenuItem(
+                                    icon = Icons.Default.Person,
+                                    text = "Team Members",
+                                    onClick = {
+                                        context.startActivity(
+                                            Intent(context, MemberActivity::class.java)
                                         )
                                     }
                                 )
